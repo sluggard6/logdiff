@@ -1,7 +1,7 @@
 import 'dart:io';
 
+import 'package:floor_common/src/callback.dart';
 import 'package:flutter/material.dart';
-import 'package:logdiff/components/db.dart';
 import 'package:logdiff/components/global.dart';
 import 'package:logdiff/components/main_menu.dart';
 import 'package:logdiff/model/database.dart';
@@ -13,34 +13,74 @@ import 'package:toastification/toastification.dart';
 // import 'package:logdiff/database/app_database.dart';
 
 void main() async {
-  startTest();
+  await startTest();
 
-  if (Platform.isWindows || Platform.isLinux) {
-    // Initialize FFI
-    sqfliteFfiInit();
-    // Change the default factory
-    databaseFactory = databaseFactoryFfi;
-  }
+  // if (Platform.isWindows || Platform.isLinux) {
+  //   // Initialize FFI
+  //   sqfliteFfiInit();
+  //   // Change the default factory
+  //   databaseFactory = databaseFactoryFfi;
+  // }
   runApp(const MyApp());
 }
 
 Future<void> startTest() async {
-  final database =
-      await $FloorFlutterDatabase.databaseBuilder('app_database.db').build();
-  final PositionDao personDao = database.positionDao;
-  // final person = await database.findPersonById(1);
-  await personDao.insertPosition(Position(
-      id: 1,
-      stationId: 1,
-      type: 1,
-      serialNumber: 1,
-      name: "name",
-      location: 1,
-      value: 1,
-      valueDesc: Map.of({1: "1", 2: "2"}).toString(),
-      state: 1,
-      alarmLevel: 1,
-      description: "description"));
+  WidgetsFlutterBinding.ensureInitialized();
+  //       onCreate: (db, version) {
+//         print("run on create db");
+//         db.execute('CREATE TABLE STATIONS(id INTEGER PRIMARY KEY, name TEXT)');
+//         db.execute('insert into stations(id, name) values(1, "测试站")');
+//         db.execute('''
+//           CREATE TABLE POSITIONS(id INTEGER PRIMARY KEY,
+//             station_id INTEGER,
+//             type INTEGER,
+//             serial_number INTEGER,
+//             name TEXT,
+//             location INTEGER,
+//             value INTEGER,
+//             value_desc TEXT,
+//             state INTEGER,
+//             alarm_level INTEGER,
+//             description TEXT)
+//           ''');
+  // final callback = Callback(
+  //   onCreate: (database, version) {
+  //     database
+  //         .execute('CREATE TABLE STATIONS(id INTEGER PRIMARY KEY, name TEXT)');
+  //     database.execute('''
+  //         CREATE TABLE POSITIONS(id INTEGER PRIMARY KEY,
+  //           station_id INTEGER,
+  //           type INTEGER,
+  //           serial_number INTEGER,
+  //           name TEXT,
+  //           location INTEGER,
+  //           value INTEGER,
+  //           value_desc TEXT,
+  //           state INTEGER,
+  //           alarm_level INTEGER,
+  //           description TEXT)
+  //         ''');
+  //   },
+  // );
+  final database = await $FloorLogdiffDatabase
+      .databaseBuilder('logdiff.db')
+      // .addCallback(callback)
+      .build();
+  Global.database = database;
+  // final PositionDao personDao = database.positionDao;
+  // // final person = await database.findPersonById(1);
+  // await personDao.insertPosition(Position(
+  //     id: 1,
+  //     stationId: 1,
+  //     type: 1,
+  //     serialNumber: 1,
+  //     name: "name",
+  //     location: 1,
+  //     value: 1,
+  //     valueDesc: Map.of({1: "1", 2: "2"}).toString(),
+  //     state: 1,
+  //     alarmLevel: 1,
+  //     description: "description"));
   // Global(database);
   // return database;
 }

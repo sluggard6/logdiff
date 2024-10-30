@@ -6,33 +6,33 @@ part of 'database.dart';
 // FloorGenerator
 // **************************************************************************
 
-abstract class $FlutterDatabaseBuilderContract {
+abstract class $LogdiffDatabaseBuilderContract {
   /// Adds migrations to the builder.
-  $FlutterDatabaseBuilderContract addMigrations(List<Migration> migrations);
+  $LogdiffDatabaseBuilderContract addMigrations(List<Migration> migrations);
 
   /// Adds a database [Callback] to the builder.
-  $FlutterDatabaseBuilderContract addCallback(Callback callback);
+  $LogdiffDatabaseBuilderContract addCallback(Callback callback);
 
   /// Creates the database and initializes it.
-  Future<FlutterDatabase> build();
+  Future<LogdiffDatabase> build();
 }
 
 // ignore: avoid_classes_with_only_static_members
-class $FloorFlutterDatabase {
+class $FloorLogdiffDatabase {
   /// Creates a database builder for a persistent database.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static $FlutterDatabaseBuilderContract databaseBuilder(String name) =>
-      _$FlutterDatabaseBuilder(name);
+  static $LogdiffDatabaseBuilderContract databaseBuilder(String name) =>
+      _$LogdiffDatabaseBuilder(name);
 
   /// Creates a database builder for an in memory database.
   /// Information stored in an in memory database disappears when the process is killed.
   /// Once a database is built, you should keep a reference to it and re-use it.
-  static $FlutterDatabaseBuilderContract inMemoryDatabaseBuilder() =>
-      _$FlutterDatabaseBuilder(null);
+  static $LogdiffDatabaseBuilderContract inMemoryDatabaseBuilder() =>
+      _$LogdiffDatabaseBuilder(null);
 }
 
-class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
-  _$FlutterDatabaseBuilder(this.name);
+class _$LogdiffDatabaseBuilder implements $LogdiffDatabaseBuilderContract {
+  _$LogdiffDatabaseBuilder(this.name);
 
   final String? name;
 
@@ -41,23 +41,23 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
   Callback? _callback;
 
   @override
-  $FlutterDatabaseBuilderContract addMigrations(List<Migration> migrations) {
+  $LogdiffDatabaseBuilderContract addMigrations(List<Migration> migrations) {
     _migrations.addAll(migrations);
     return this;
   }
 
   @override
-  $FlutterDatabaseBuilderContract addCallback(Callback callback) {
+  $LogdiffDatabaseBuilderContract addCallback(Callback callback) {
     _callback = callback;
     return this;
   }
 
   @override
-  Future<FlutterDatabase> build() async {
+  Future<LogdiffDatabase> build() async {
     final path = name != null
         ? await sqfliteDatabaseFactory.getDatabasePath(name!)
         : ':memory:';
-    final database = _$FlutterDatabase();
+    final database = _$LogdiffDatabase();
     database.database = await database.open(
       path,
       _migrations,
@@ -67,10 +67,12 @@ class _$FlutterDatabaseBuilder implements $FlutterDatabaseBuilderContract {
   }
 }
 
-class _$FlutterDatabase extends FlutterDatabase {
-  _$FlutterDatabase([StreamController<String>? listener]) {
+class _$LogdiffDatabase extends LogdiffDatabase {
+  _$LogdiffDatabase([StreamController<String>? listener]) {
     changeListener = listener ?? StreamController<String>.broadcast();
   }
+
+  StationDao? _stationDaoInstance;
 
   PositionDao? _positionDaoInstance;
 
@@ -96,6 +98,8 @@ class _$FlutterDatabase extends FlutterDatabase {
       },
       onCreate: (database, version) async {
         await database.execute(
+            'CREATE TABLE IF NOT EXISTS `Station` (`id` INTEGER, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
+        await database.execute(
             'CREATE TABLE IF NOT EXISTS `Position` (`id` INTEGER, `station_id` INTEGER NOT NULL, `type` INTEGER NOT NULL, `serial_number` INTEGER NOT NULL, `name` TEXT NOT NULL, `location` INTEGER NOT NULL, `value` INTEGER, `value_desc` TEXT NOT NULL, `state` INTEGER NOT NULL, `alarm_level` INTEGER NOT NULL, `description` TEXT NOT NULL, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
@@ -105,8 +109,97 @@ class _$FlutterDatabase extends FlutterDatabase {
   }
 
   @override
+  StationDao get stationDao {
+    return _stationDaoInstance ??= _$StationDao(database, changeListener);
+  }
+
+  @override
   PositionDao get positionDao {
     return _positionDaoInstance ??= _$PositionDao(database, changeListener);
+  }
+}
+
+class _$StationDao extends StationDao {
+  _$StationDao(
+    this.database,
+    this.changeListener,
+  )   : _queryAdapter = QueryAdapter(database),
+        _stationInsertionAdapter = InsertionAdapter(
+            database,
+            'Station',
+            (Station item) =>
+                <String, Object?>{'id': item.id, 'name': item.name}),
+        _stationUpdateAdapter = UpdateAdapter(
+            database,
+            'Station',
+            ['id'],
+            (Station item) =>
+                <String, Object?>{'id': item.id, 'name': item.name}),
+        _stationDeletionAdapter = DeletionAdapter(
+            database,
+            'Station',
+            ['id'],
+            (Station item) =>
+                <String, Object?>{'id': item.id, 'name': item.name});
+
+  final sqflite.DatabaseExecutor database;
+
+  final StreamController<String> changeListener;
+
+  final QueryAdapter _queryAdapter;
+
+  final InsertionAdapter<Station> _stationInsertionAdapter;
+
+  final UpdateAdapter<Station> _stationUpdateAdapter;
+
+  final DeletionAdapter<Station> _stationDeletionAdapter;
+
+  @override
+  Future<List<Station>> findAllStations() async {
+    return _queryAdapter.queryList('SELECT * FROM Stations',
+        mapper: (Map<String, Object?> row) =>
+            Station(id: row['id'] as int?, name: row['name'] as String));
+  }
+
+  @override
+  Future<Station?> findStationById(int id) async {
+    return _queryAdapter.query('SELECT * FROM Stations WHERE id = ?1',
+        mapper: (Map<String, Object?> row) =>
+            Station(id: row['id'] as int?, name: row['name'] as String),
+        arguments: [id]);
+  }
+
+  @override
+  Future<List<Station>> findStationByName(String name) async {
+    return _queryAdapter.queryList('SELECT * FROM Stations WHERE name = ?1',
+        mapper: (Map<String, Object?> row) =>
+            Station(id: row['id'] as int?, name: row['name'] as String),
+        arguments: [name]);
+  }
+
+  @override
+  Future<int?> countStationName(String name) async {
+    return _queryAdapter.query(
+        'SELECT COUNT(name) FROM stations where name = ?1',
+        mapper: (Map<String, Object?> row) => row.values.first as int,
+        arguments: [name]);
+  }
+
+  @override
+  Future<int> insertStation(Station station) {
+    return _stationInsertionAdapter.insertAndReturnId(
+        station, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> updateStation(Station station) {
+    return _stationUpdateAdapter.updateAndReturnChangedRows(
+        station, OnConflictStrategy.abort);
+  }
+
+  @override
+  Future<int> deleteStation(Station station) {
+    return _stationDeletionAdapter.deleteAndReturnChangedRows(station);
   }
 }
 
@@ -265,3 +358,6 @@ class _$PositionDao extends PositionDao {
     await _positionDeletionAdapter.delete(position);
   }
 }
+
+// ignore_for_file: unused_element
+final _positionTypeConverter = PositionTypeConverter();

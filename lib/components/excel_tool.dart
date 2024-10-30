@@ -11,7 +11,7 @@ import 'package:logdiff/model/station.dart';
 
 class ExcelTool {
   static importStations(String stationName, String filePath) async {
-    int stationId = await Global.instance.database.stationDao
+    int stationId = await Global.database.stationDao
         .insertStation(Station(name: stationName));
     // await Db.insertModel('stations', Station(name: stationName));
     File file = File(filePath);
@@ -34,7 +34,7 @@ class ExcelTool {
           }
         }
         if (e.value[0] != null) {
-          Global.instance.database.positionDao.insertPosition(
+          Global.database.positionDao.insertPosition(
             Position(
               stationId: stationId,
               type: PositionType.yx.value,

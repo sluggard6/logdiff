@@ -4,6 +4,7 @@ import 'package:floor/floor.dart';
 
 @entity
 class Station {
+  @primaryKey
   late int? id;
   final String name;
   @ignore

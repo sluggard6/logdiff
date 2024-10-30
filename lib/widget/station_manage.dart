@@ -148,8 +148,7 @@ class _StationManageState extends State<StationManage> {
   }
 
   Future<void> _loadStation() async {
-    List<Station> stations =
-        await Global.instance.database.stationDao.findAllStations();
+    List<Station> stations = await Global.database.stationDao.findAllStations();
     // List<Station> stations = await Db.queryStations();
     this.stations = stations;
     if (stationId == 0) {
@@ -163,13 +162,13 @@ class _StationManageState extends State<StationManage> {
     try {
       if (stationName.trim().isEmpty) {
         message = "名称不能为空";
-      } else if (await Global.instance.database.stationDao
-              .countStationName(stationName) >
+      } else if ((await Global.database.stationDao
+              .countStationName(stationName))! >
           0) {
         // } else if (await Db.countField("stations", "name", stationName) > 0) {
         message = "名称重复";
       } else {
-        await Global.instance.database.stationDao
+        await Global.database.stationDao
             .updateStation(Station(id: stationId, name: stationName));
         // await Db.updateModel(
         //     "stations", Station(id: stationId, name: stationName));
