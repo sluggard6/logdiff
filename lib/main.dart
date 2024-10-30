@@ -40,7 +40,7 @@ Future<void> startTest() async {
       state: 1,
       alarmLevel: 1,
       description: "description"));
-  Global(database);
+  // Global(database);
   // return database;
 }
 
@@ -138,7 +138,7 @@ class _MyHomePageState extends State<MyHomePage> {
               // const Expanded(
               // child: TitleSection(file1: "", file2: "", type: 0, station: 1),
               // ),
-              TitleSection(stationDao: Global._instance.database.stationDao),
+              TitleSection(),
             ],
           ),
         ),

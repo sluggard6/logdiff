@@ -1,5 +1,7 @@
 # logdiff
 
+测点记录比较工具
+
 A new Flutter project.
 
 ## Getting Started
