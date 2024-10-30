@@ -14,6 +14,7 @@ import 'package:toastification/toastification.dart';
 
 void main() async {
   startTest();
+
   if (Platform.isWindows || Platform.isLinux) {
     // Initialize FFI
     sqfliteFfiInit();

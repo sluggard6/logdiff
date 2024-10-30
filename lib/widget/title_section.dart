@@ -4,18 +4,18 @@ import 'dart:io';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:logdiff/components/db.dart';
+import 'package:logdiff/components/global.dart';
 import 'package:logdiff/model/position.dart';
 import 'package:logdiff/model/station.dart';
-import 'package:logdiff/model/station_dao.dart';
 
 List<PositionType> types = PositionTypes.values;
 Station zeroStation = Station(id: 0, name: "未选择");
 
 class TitleSection extends StatefulWidget {
-  final StationDao stationDao;
+  // final StationDao stationDao;
   const TitleSection({
     super.key,
-    required this.stationDao,
+    // required this.stationDao,
   });
 
   // final String file1;
@@ -188,7 +188,8 @@ class _TitleSectionState extends State<TitleSection> {
 
   Future<List<Station>> _loadStation(BuildContext context) async {
     // List<Station> dbs = await Db.queryStations();
-    List<Station> dbs = await widget.stationDao.findAllStations();
+    List<Station> dbs =
+        await Global.instance.database.stationDao.findAllStations();
     List<Station> stations = [];
     stations.add(zeroStation);
     stations.addAll(dbs);

@@ -5,13 +5,15 @@ import 'dart:typed_data';
 import 'package:excel/excel.dart';
 import 'package:flutter/services.dart';
 import 'package:logdiff/components/db.dart';
+import 'package:logdiff/components/global.dart';
 import 'package:logdiff/model/position.dart';
 import 'package:logdiff/model/station.dart';
 
 class ExcelTool {
   static importStations(String stationName, String filePath) async {
-    int stationId =
-        await Db.insertModel('stations', Station(name: stationName));
+    int stationId = await Global.instance.database.stationDao
+        .insertStation(Station(name: stationName));
+    // await Db.insertModel('stations', Station(name: stationName));
     File file = File(filePath);
 
     var excel = Excel.decodeBytes(await file.readAsBytes());
@@ -32,8 +34,7 @@ class ExcelTool {
           }
         }
         if (e.value[0] != null) {
-          Db.insertModel(
-            "positions",
+          Global.instance.database.positionDao.insertPosition(
             Position(
               stationId: stationId,
               type: PositionType.yx.value,

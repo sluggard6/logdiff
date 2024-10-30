@@ -3,19 +3,20 @@ import 'package:logdiff/model/database.dart';
 
 class Global {
   static Global? _instance;
-  Global._internal(this.database);
-  final LogdiffDatabase database;
+  Global._internal();
+  late final LogdiffDatabase database;
 
   // 工厂构造函数
   factory Global() {
-    if (_instance == null) {
-      WidgetsFlutterBinding.ensureInitialized();
-    }
-    _instance ??= Global._internal(database);
+    _instance ??= Global._internal();
     return _instance!;
   }
-  static Global get instance => _intance ??= Global._internal(database);
+  static Global get instance => _instance ??= Global._internal();
   // Global({required this.database});
 
-  init() async {}
+  void init() async {
+    WidgetsFlutterBinding.ensureInitialized();
+    database =
+        await $FloorFlutterDatabase.databaseBuilder('logdiff.db').build();
+  }
 }

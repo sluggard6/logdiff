@@ -12,9 +12,9 @@ abstract class StationDao {
   @Query('SELECT COUNT(*) FROM stations where name = :name')
   Future<int> countStationName(String name);
   @insert
-  Future<void> insertStation(Station station);
+  Future<int> insertStation(Station station);
   @delete
-  Future<void> deleteStation(Station station);
+  Future<int> deleteStation(Station station);
   @update
-  Future<void> updateStation(Station station);
+  Future<int> updateStation(Station station);
 }

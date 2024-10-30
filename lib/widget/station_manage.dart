@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:logdiff/components/db.dart';
+import 'package:logdiff/components/global.dart';
 import 'package:logdiff/components/import_station_dialog.dart';
 import 'package:logdiff/components/main_menu.dart';
 import 'package:logdiff/model/station.dart';
@@ -147,7 +148,9 @@ class _StationManageState extends State<StationManage> {
   }
 
   Future<void> _loadStation() async {
-    List<Station> stations = await Db.queryStations();
+    List<Station> stations =
+        await Global.instance.database.stationDao.findAllStations();
+    // List<Station> stations = await Db.queryStations();
     this.stations = stations;
     if (stationId == 0) {
       stationId = stations.first.id!;
@@ -160,11 +163,16 @@ class _StationManageState extends State<StationManage> {
     try {
       if (stationName.trim().isEmpty) {
         message = "名称不能为空";
-      } else if (await Db.countField("stations", "name", stationName) > 0) {
+      } else if (await Global.instance.database.stationDao
+              .countStationName(stationName) >
+          0) {
+        // } else if (await Db.countField("stations", "name", stationName) > 0) {
         message = "名称重复";
       } else {
-        await Db.updateModel(
-            "stations", Station(id: stationId, name: stationName));
+        await Global.instance.database.stationDao
+            .updateStation(Station(id: stationId, name: stationName));
+        // await Db.updateModel(
+        //     "stations", Station(id: stationId, name: stationName));
       }
     } catch (e, s) {
       print('exception details:\n $e');

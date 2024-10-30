@@ -4,6 +4,7 @@ import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:logdiff/components/db.dart';
 import 'package:logdiff/components/excel_tool.dart';
+import 'package:logdiff/components/global.dart';
 import 'package:toastification/toastification.dart';
 
 class ImportStationDialog extends StatefulWidget {
@@ -76,7 +77,10 @@ class _ImportStationDialogState extends State<ImportStationDialog> {
     try {
       if (stationName.trim().isEmpty) {
         message = "名称不能为空";
-      } else if (await Db.countField("stations", "name", stationName) > 0) {
+      } else if (await Global.instance.database.stationDao
+              .countStationName(stationName) >
+          0) {
+        // } else if (await Db.countField("stations", "name", stationName) > 0) {
         message = "名称重复";
       } else if (file.isEmpty) {
         message = "请选择文件";
