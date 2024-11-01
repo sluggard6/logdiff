@@ -30,7 +30,8 @@ class _TitleSectionState extends State<TitleSection> {
   int type = 0;
   String file1 = "";
   String file2 = "";
-  Station station = zeroStation;
+  int? stationId;
+  // Station station = zeroStation;
   // late Station station;
 
   // @override
@@ -113,13 +114,13 @@ class _TitleSectionState extends State<TitleSection> {
                   future: _loadStation(context),
                   builder: (BuildContext context, AsyncSnapshot snapshot) {
                     if (snapshot.connectionState == ConnectionState.done) {
-                      print(snapshot.data.length);
                       return DropdownButton<int>(
-                        value: station.id,
+                        value: stationId,
                         onChanged: (int? id) {
                           setState(() {
-                            station = snapshot.data
-                                .firstWhere((element) => element.id == id);
+                            stationId = snapshot.data
+                                .firstWhere((element) => element.id == id)
+                                .id!;
                           });
                         },
                         items: snapshot.data.map<DropdownMenuItem<int>>(
@@ -187,14 +188,16 @@ class _TitleSectionState extends State<TitleSection> {
 
   Future<List<Station>> _loadStation(BuildContext context) async {
     // List<Station> dbs = await Db.queryStations();
-    List<Station> stations = [];
-
-    List<Station> dbs = await Global.database.stationDao.findAllStations();
-    if (dbs.isEmpty) {
-      stations.add(zeroStation);
-    } else {
-      stations.addAll(dbs);
-    }
-    return stations;
+    // List<Station> stations = [];
+    // List<Station> dbs = await Global.database.stationDao.findAllStations();
+    // if (dbs.isEmpty) {
+    //   stations.add(zeroStation);
+    // } else {
+    // stations.addAll(dbs);
+    // if (stationId == 0) {
+    //   stationId = stations.first.id!;
+    // }
+    // }
+    return await Global.database.stationDao.findAllStations();
   }
 }

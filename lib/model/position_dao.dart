@@ -9,7 +9,7 @@ abstract class PositionDao {
   @Query('SELECT * FROM Position WHERE id = :id')
   Future<Position?> findPositionById(int id);
 
-  @Query('SELECT * FROM Position WHERE stationId = :stationId')
+  @Query('SELECT * FROM Position WHERE station_id = :stationId')
   Future<List<Position>> findPositionsByStationId(int stationId);
 
   @Query('SELECT * FROM Position WHERE type = :type')

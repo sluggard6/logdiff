@@ -15,7 +15,7 @@ class ImportStationDialog extends StatefulWidget {
 
 class _ImportStationDialogState extends State<ImportStationDialog> {
   final TextEditingController _stationNameController = TextEditingController();
-  late String file;
+  String? file;
   late String stationName;
   @override
   Widget build(BuildContext context) {
@@ -36,17 +36,19 @@ class _ImportStationDialogState extends State<ImportStationDialog> {
               MaterialButton(
                 child: const Text("取消"),
                 onPressed: () {
-                  Navigator.of(context).pop();
+                  Navigator.of(context).pop(false);
                 },
               ),
               MaterialButton(
                 // color: Colors.blue,
                 child: const Text("确定"),
-                onPressed: () {
+                onPressed: () async {
                   stationName = _stationNameController.text;
-                  checkParams(context);
+                  // bool refresh =
                   // updateStationName(stationName, context);
-                  Navigator.of(context).pop();
+                  // checkParams(context);
+                  Navigator.of(context).pop(await checkParams(context));
+                  // Navigator.pop(context, refresh);
                 },
               ),
             ],
@@ -71,8 +73,9 @@ class _ImportStationDialogState extends State<ImportStationDialog> {
     }
   }
 
-  Future<void> checkParams(BuildContext context) async {
+  Future<bool> checkParams(BuildContext context) async {
     String message = "操作成功";
+    bool ret = false;
     try {
       if (stationName.trim().isEmpty) {
         message = "名称不能为空";
@@ -81,10 +84,11 @@ class _ImportStationDialogState extends State<ImportStationDialog> {
           0) {
         // } else if (await Db.countField("stations", "name", stationName) > 0) {
         message = "名称重复";
-      } else if (file.isEmpty) {
+      } else if (file == null) {
         message = "请选择文件";
       } else {
-        ExcelTool.importStations(stationName, file);
+        ExcelTool.importStations(stationName, file!);
+        ret = true;
       }
     } catch (e, s) {
       print('exception details:\n $e');
@@ -95,5 +99,6 @@ class _ImportStationDialogState extends State<ImportStationDialog> {
       title: Text(message),
       autoCloseDuration: const Duration(seconds: 3),
     );
+    return ret;
   }
 }

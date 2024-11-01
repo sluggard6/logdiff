@@ -100,7 +100,7 @@ class _$LogdiffDatabase extends LogdiffDatabase {
         await database.execute(
             'CREATE TABLE IF NOT EXISTS `Station` (`id` INTEGER, `name` TEXT NOT NULL, PRIMARY KEY (`id`))');
         await database.execute(
-            'CREATE TABLE IF NOT EXISTS `Position` (`id` INTEGER, `station_id` INTEGER NOT NULL, `type` INTEGER NOT NULL, `serial_number` INTEGER NOT NULL, `name` TEXT NOT NULL, `location` INTEGER NOT NULL, `value` INTEGER, `value_desc` TEXT NOT NULL, `state` INTEGER NOT NULL, `alarm_level` INTEGER NOT NULL, `description` TEXT NOT NULL, PRIMARY KEY (`id`))');
+            'CREATE TABLE IF NOT EXISTS `Position` (`id` INTEGER, `station_id` INTEGER NOT NULL, `type` INTEGER NOT NULL, `serial_number` INTEGER NOT NULL, `name` TEXT NOT NULL, `location` INTEGER NOT NULL, `value` INTEGER, `value_desc` TEXT NOT NULL, `state` INTEGER NOT NULL, `alarm_level` INTEGER NOT NULL, `description` TEXT, PRIMARY KEY (`id`))');
 
         await callback?.onCreate?.call(database, version);
       },
@@ -156,14 +156,14 @@ class _$StationDao extends StationDao {
 
   @override
   Future<List<Station>> findAllStations() async {
-    return _queryAdapter.queryList('SELECT * FROM Stations',
+    return _queryAdapter.queryList('SELECT * FROM Station',
         mapper: (Map<String, Object?> row) =>
             Station(id: row['id'] as int?, name: row['name'] as String));
   }
 
   @override
   Future<Station?> findStationById(int id) async {
-    return _queryAdapter.query('SELECT * FROM Stations WHERE id = ?1',
+    return _queryAdapter.query('SELECT * FROM Station WHERE id = ?1',
         mapper: (Map<String, Object?> row) =>
             Station(id: row['id'] as int?, name: row['name'] as String),
         arguments: [id]);
@@ -171,7 +171,7 @@ class _$StationDao extends StationDao {
 
   @override
   Future<List<Station>> findStationByName(String name) async {
-    return _queryAdapter.queryList('SELECT * FROM Stations WHERE name = ?1',
+    return _queryAdapter.queryList('SELECT * FROM Station WHERE name = ?1',
         mapper: (Map<String, Object?> row) =>
             Station(id: row['id'] as int?, name: row['name'] as String),
         arguments: [name]);
@@ -180,7 +180,7 @@ class _$StationDao extends StationDao {
   @override
   Future<int?> countStationName(String name) async {
     return _queryAdapter.query(
-        'SELECT COUNT(name) FROM stations where name = ?1',
+        'SELECT COUNT(name) FROM station where name = ?1',
         mapper: (Map<String, Object?> row) => row.values.first as int,
         arguments: [name]);
   }
@@ -285,7 +285,7 @@ class _$PositionDao extends PositionDao {
             valueDesc: row['value_desc'] as String,
             state: row['state'] as int,
             alarmLevel: row['alarm_level'] as int,
-            description: row['description'] as String));
+            description: row['description'] as String?));
   }
 
   @override
@@ -302,14 +302,14 @@ class _$PositionDao extends PositionDao {
             valueDesc: row['value_desc'] as String,
             state: row['state'] as int,
             alarmLevel: row['alarm_level'] as int,
-            description: row['description'] as String),
+            description: row['description'] as String?),
         arguments: [id]);
   }
 
   @override
   Future<List<Position>> findPositionsByStationId(int stationId) async {
     return _queryAdapter.queryList(
-        'SELECT * FROM Position WHERE stationId = ?1',
+        'SELECT * FROM Position WHERE station_id = ?1',
         mapper: (Map<String, Object?> row) => Position(
             id: row['id'] as int?,
             stationId: row['station_id'] as int,
@@ -321,7 +321,7 @@ class _$PositionDao extends PositionDao {
             valueDesc: row['value_desc'] as String,
             state: row['state'] as int,
             alarmLevel: row['alarm_level'] as int,
-            description: row['description'] as String),
+            description: row['description'] as String?),
         arguments: [stationId]);
   }
 
@@ -339,7 +339,7 @@ class _$PositionDao extends PositionDao {
             valueDesc: row['value_desc'] as String,
             state: row['state'] as int,
             alarmLevel: row['alarm_level'] as int,
-            description: row['description'] as String),
+            description: row['description'] as String?),
         arguments: [type]);
   }
 

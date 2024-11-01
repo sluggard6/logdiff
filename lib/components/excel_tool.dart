@@ -1,10 +1,7 @@
 import 'dart:convert';
 import 'dart:io';
-import 'dart:typed_data';
 
 import 'package:excel/excel.dart';
-import 'package:flutter/services.dart';
-import 'package:logdiff/components/db.dart';
 import 'package:logdiff/components/global.dart';
 import 'package:logdiff/model/position.dart';
 import 'package:logdiff/model/station.dart';
@@ -39,17 +36,17 @@ class ExcelTool {
               stationId: stationId,
               type: PositionType.yx.value,
               serialNumber: (e.value[0]!.value as IntCellValue).value,
-              name: e.value[2]!.value.toString(),
+              name: e.value[1]!.value.toString(),
               location: (e.value[3]!.value as IntCellValue).value,
               valueDesc: Map.of({
-                0: e.value[4]!.value.toString(),
-                1: e.value[5]!.value.toString(),
+                '"0"': '"${e.value[4]!.value}"',
+                '"1"': '"${e.value[5]!.value}"',
               }).toString(),
               state: readState(e.value[6]!.value.toString()),
               alarmLevel: e.value[7]!.value == null
                   ? 0
                   : (e.value[7]!.value as IntCellValue).value,
-              description: e.value[8]!.value.toString(),
+              description: e.value[8]!.value?.toString(),
             ),
           );
         }

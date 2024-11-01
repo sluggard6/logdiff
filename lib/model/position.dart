@@ -19,7 +19,7 @@ class Position {
   final int state;
   @ColumnInfo(name: 'alarm_level')
   final int alarmLevel;
-  final String description;
+  final String? description;
 
   Position({
     this.id,
@@ -32,7 +32,7 @@ class Position {
     required this.valueDesc,
     required this.state,
     required this.alarmLevel,
-    required this.description,
+    this.description,
   });
 
   Map<String, dynamic> toMap() {
@@ -49,6 +49,10 @@ class Position {
       'alarm_level': alarmLevel,
       'description': description,
     };
+  }
+
+  String getValueDescString(int value) {
+    return jsonDecode(valueDesc)[value.toString()] ?? "未知";
   }
 }
 
@@ -90,3 +94,22 @@ extension PositionValueDesc on Position {
     // return "unkown";
   }
 }
+
+extension PositionStateDesc on Position {
+  String stateDesc() {
+    return state == 0 ? "未启用" : "启用";
+  }
+}
+
+// class ValueDesc {
+//   final int value;
+//   final String desc;
+//   const ValueDesc(
+//     this.value,
+//     this.desc,
+//   );
+
+//   factory ValueDesc.fromJson(Map<int, String> json) {
+//     return ValueDesc(json[], json['desc']);
+//   }
+// }

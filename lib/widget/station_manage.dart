@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:logdiff/components/db.dart';
 import 'package:logdiff/components/global.dart';
 import 'package:logdiff/components/import_station_dialog.dart';
 import 'package:logdiff/components/main_menu.dart';
+import 'package:logdiff/model/position.dart';
 import 'package:logdiff/model/station.dart';
 import 'package:toastification/toastification.dart';
 
@@ -18,6 +18,7 @@ class _StationManageState extends State<StationManage> {
   late int stationId = 0;
   late String stationName = "";
   final TextEditingController _stationNameController = TextEditingController();
+  late List<Position> positions = [];
   // late List<>
 
   @override
@@ -35,114 +36,148 @@ class _StationManageState extends State<StationManage> {
           title: const Text("管理站数据"),
         ),
         body: SingleChildScrollView(
-            child: FutureBuilder<void>(
-          future: _loadStation(),
-          builder: (BuildContext context, AsyncSnapshot snapshot) {
-            if (snapshot.connectionState == ConnectionState.done) {
-              return Column(
+          child: Column(
+            children: [
+              Row(
                 children: [
+                  const Text("选择站："),
+                  FutureBuilder(
+                      future: _loadStation(),
+                      builder: (BuildContext context, AsyncSnapshot snapshot) {
+                        if (snapshot.connectionState == ConnectionState.done) {
+                          return DropdownButton<int>(
+                            value: stationId,
+                            onChanged: (int? id) {
+                              setState(() {
+                                stationId = stations
+                                    .firstWhere((element) => element.id == id)
+                                    .id!;
+                              });
+                            },
+                            items: stations.map<DropdownMenuItem<int>>(
+                              (Station station) {
+                                return DropdownMenuItem<int>(
+                                  value: station.id,
+                                  child: Text(station.name),
+                                );
+                              },
+                            ).toList(),
+                          );
+                        }
+                        return const CircularProgressIndicator();
+                      }),
                   Padding(
-                    padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
-                    child: Row(children: [
-                      const Text("选择站："),
-                      DropdownButton<int>(
-                        value: stationId,
-                        onChanged: (int? id) {
-                          setState(() {
-                            stationId = stations
-                                .firstWhere((element) => element.id == id)
-                                .id!;
-                          });
-                        },
-                        items: stations.map<DropdownMenuItem<int>>(
-                          (Station station) {
-                            return DropdownMenuItem<int>(
-                              value: station.id,
-                              child: Text(station.name),
-                            );
-                          },
-                        ).toList(),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: MaterialButton(
-                          onPressed: () {},
-                          color: Colors.blue,
-                          child: const Text("加载数据"),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.only(left: 8),
-                        child: MaterialButton(
-                          onPressed: () {
-                            showDialog(
-                              context: context,
-                              builder: (BuildContext context) => AlertDialog(
-                                title: const Text("修改站名"),
-                                content: const Text("请输入站点名称"),
-                                actions: [
-                                  TextField(
-                                    controller: _stationNameController,
+                    padding: const EdgeInsets.only(left: 8),
+                    child: MaterialButton(
+                      onPressed: _loadPostions,
+                      color: Colors.blue,
+                      child: const Text("加载数据"),
+                    ),
+                  ),
+                  Padding(
+                    padding: const EdgeInsets.only(left: 8),
+                    child: MaterialButton(
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (BuildContext context) => AlertDialog(
+                            title: const Text("修改站名"),
+                            content: const Text("请输入站点名称"),
+                            actions: [
+                              TextField(
+                                controller: _stationNameController,
+                              ),
+                              Row(
+                                children: [
+                                  MaterialButton(
+                                    child: const Text("取消"),
+                                    onPressed: () {
+                                      Navigator.of(context).pop();
+                                    },
                                   ),
-                                  Row(
-                                    children: [
-                                      MaterialButton(
-                                        child: const Text("取消"),
-                                        onPressed: () {
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                      MaterialButton(
-                                        // color: Colors.blue,
-                                        child: const Text("确定"),
-                                        onPressed: () {
-                                          stationName =
-                                              _stationNameController.text;
-                                          updateStationName(
-                                              stationName, context);
-                                          Navigator.of(context).pop();
-                                        },
-                                      ),
-                                    ],
+                                  MaterialButton(
+                                    // color: Colors.blue,
+                                    child: const Text("确定"),
+                                    onPressed: () {
+                                      stationName = _stationNameController.text;
+                                      updateStationName(stationName, context);
+                                      Navigator.of(context).pop();
+                                    },
                                   ),
                                 ],
                               ),
+                            ],
+                          ),
+                        );
+                      },
+                      color: Colors.blue,
+                      child: const Text("修改站名"),
+                    ),
+                  ),
+                  Expanded(
+                    child: Column(
+                      children: [
+                        MaterialButton(
+                          onPressed: () async {
+                            bool? reflush = await showDialog(
+                              context: context,
+                              builder: (BuildContext context) =>
+                                  const ImportStationDialog(),
                             );
+                            if (reflush != null && reflush) {
+                              setState(() {});
+                            }
+                            print(reflush);
                           },
                           color: Colors.blue,
-                          child: const Text("修改站名"),
+                          child: const Text("导入新站"),
                         ),
-                      ),
-                      Expanded(
-                        child: Column(
-                          children: [
-                            MaterialButton(
-                              onPressed: () {
-                                showDialog(
-                                    context: context,
-                                    builder: (BuildContext context) =>
-                                        const ImportStationDialog());
-                              },
-                              color: Colors.blue,
-                              child: const Text("导入新站"),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ]),
+                      ],
+                    ),
                   ),
-                  // Expanded(
-                  //   child: ListView.builder(
-                  //       itemBuilder: (BuildContext context, int index) {
-                  //     return const CircularProgressIndicator();
-                  //   }),
-                  // ),
                 ],
-              );
-            }
-            return const CircularProgressIndicator();
-          },
-        )),
+              ),
+              // Scrollable(viewportBuilder: viewportBuilder)
+              // Row(children: [],),
+              ListView.builder(
+                  shrinkWrap: true,
+                  itemCount: positions.length + 1,
+                  itemBuilder: (BuildContext context, int index) {
+                    if (index == 0) {
+                      return const Row(
+                        children: [
+                          Expanded(
+                            child: Text('序号'),
+                          ),
+                          Expanded(
+                            child: Text('标准描述'),
+                          ),
+                          Expanded(
+                            child: Text('转发地址'),
+                          ),
+                          Expanded(
+                            child: Text('0'),
+                          ),
+                          Expanded(
+                            child: Text('1'),
+                          ),
+                          Expanded(
+                            child: Text('备注'),
+                          ),
+                          Expanded(
+                            child: Text('报警等级'),
+                          ),
+                          Expanded(
+                            child: Text('备注'),
+                          ),
+                        ],
+                      );
+                    }
+                    return PositionListItem(position: positions[index - 1]);
+                  }),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -185,28 +220,54 @@ class _StationManageState extends State<StationManage> {
     );
   }
 
-  // Future<> _getTabRows(int stationId) async {
-  //   // FutureBuilder
-  //   ListView.builder(
-  //     itemBuilder: (BuildContext context, int index) {},
-  //     itemCount: 10,
-  //   );
+  void _loadPostions() async {
+    positions =
+        await Global.database.positionDao.findPositionsByStationId(stationId);
+    setState(() {});
+  }
+}
 
-  //   List<TableRow> rows = [];
-  //   rows.add(const TableRow(children: [
-  //     TableCell(
-  //       child: Text("序号"),
-  //     ),
-  //     TableCell(
-  //       child: Text("名称"),
-  //     ),
-  //     TableCell(
-  //       child: Text("类型"),
-  //     ),
-  //     TableCell(
-  //       child: Text("地址"),
-  //     )
-  //   ]));
-  //   return rows;
-  // }
+class PositionListItem extends StatelessWidget {
+  final Position position;
+  // final Function(Position) onDelete;
+  // final Function(Position) onEdit;
+
+  const PositionListItem({
+    super.key,
+    required this.position,
+    // required this.onDelete,
+    // required this.onEdit,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return Row(
+      children: [
+        Expanded(
+          child: Text('${position.serialNumber}'),
+        ),
+        Expanded(
+          child: Text(position.name),
+        ),
+        Expanded(
+          child: Text('${position.location}'),
+        ),
+        Expanded(
+          child: Text(position.getValueDescString(0)),
+        ),
+        Expanded(
+          child: Text(position.getValueDescString(1)),
+        ),
+        Expanded(
+          child: Text(position.stateDesc()),
+        ),
+        Expanded(
+          child: Text('${position.alarmLevel}'),
+        ),
+        Expanded(
+          child: Text(position.description ?? ""),
+        ),
+      ],
+    );
+  }
 }
