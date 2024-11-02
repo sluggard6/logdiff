@@ -38,104 +38,113 @@ class _StationManageState extends State<StationManage> {
         body: SingleChildScrollView(
           child: Column(
             children: [
-              Row(
-                children: [
-                  const Text("选择站："),
-                  FutureBuilder(
-                      future: _loadStation(),
-                      builder: (BuildContext context, AsyncSnapshot snapshot) {
-                        if (snapshot.connectionState == ConnectionState.done) {
-                          return DropdownButton<int>(
-                            value: stationId,
-                            onChanged: (int? id) {
-                              setState(() {
-                                stationId = stations
-                                    .firstWhere((element) => element.id == id)
-                                    .id!;
-                              });
-                            },
-                            items: stations.map<DropdownMenuItem<int>>(
-                              (Station station) {
-                                return DropdownMenuItem<int>(
-                                  value: station.id,
-                                  child: Text(station.name),
-                                );
+              Padding(
+                padding: const EdgeInsets.only(left: 8),
+                child: Row(
+                  children: [
+                    const Text("选择站："),
+                    FutureBuilder(
+                        future: _loadStation(),
+                        builder:
+                            (BuildContext context, AsyncSnapshot snapshot) {
+                          if (snapshot.connectionState ==
+                              ConnectionState.done) {
+                            return DropdownButton<int>(
+                              value: stationId,
+                              onChanged: (int? id) {
+                                setState(() {
+                                  stationId = stations
+                                      .firstWhere((element) => element.id == id)
+                                      .id!;
+                                });
                               },
-                            ).toList(),
-                          );
-                        }
-                        return const CircularProgressIndicator();
-                      }),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: MaterialButton(
-                      onPressed: _loadPostions,
-                      color: Colors.blue,
-                      child: const Text("加载数据"),
-                    ),
-                  ),
-                  Padding(
-                    padding: const EdgeInsets.only(left: 8),
-                    child: MaterialButton(
-                      onPressed: () {
-                        showDialog(
-                          context: context,
-                          builder: (BuildContext context) => AlertDialog(
-                            title: const Text("修改站名"),
-                            content: const Text("请输入站点名称"),
-                            actions: [
-                              TextField(
-                                controller: _stationNameController,
-                              ),
-                              Row(
-                                children: [
-                                  MaterialButton(
-                                    child: const Text("取消"),
-                                    onPressed: () {
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                  MaterialButton(
-                                    // color: Colors.blue,
-                                    child: const Text("确定"),
-                                    onPressed: () {
-                                      stationName = _stationNameController.text;
-                                      updateStationName(stationName, context);
-                                      Navigator.of(context).pop();
-                                    },
-                                  ),
-                                ],
-                              ),
-                            ],
-                          ),
-                        );
-                      },
-                      color: Colors.blue,
-                      child: const Text("修改站名"),
-                    ),
-                  ),
-                  Expanded(
-                    child: Column(
-                      children: [
-                        MaterialButton(
-                          onPressed: () async {
-                            bool? reflush = await showDialog(
-                              context: context,
-                              builder: (BuildContext context) =>
-                                  const ImportStationDialog(),
+                              items: stations.map<DropdownMenuItem<int>>(
+                                (Station station) {
+                                  return DropdownMenuItem<int>(
+                                    value: station.id,
+                                    child: Text(station.name),
+                                  );
+                                },
+                              ).toList(),
                             );
-                            if (reflush != null && reflush) {
-                              setState(() {});
-                            }
-                            print(reflush);
-                          },
-                          color: Colors.blue,
-                          child: const Text("导入新站"),
-                        ),
-                      ],
+                          }
+                          return const CircularProgressIndicator();
+                        }),
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: MaterialButton(
+                        onPressed: _loadPostions,
+                        color: Colors.blue,
+                        child: const Text("加载数据"),
+                      ),
                     ),
-                  ),
-                ],
+                    Padding(
+                      padding: const EdgeInsets.only(left: 8),
+                      child: MaterialButton(
+                        onPressed: () async {
+                          bool refalsh = await showDialog(
+                            context: context,
+                            builder: (BuildContext context) => AlertDialog(
+                              title: const Text("修改站名"),
+                              content: const Text("请输入站点名称"),
+                              actions: [
+                                TextField(
+                                  controller: _stationNameController,
+                                ),
+                                Row(
+                                  children: [
+                                    MaterialButton(
+                                      child: const Text("取消"),
+                                      onPressed: () {
+                                        Navigator.of(context).pop(false);
+                                      },
+                                    ),
+                                    MaterialButton(
+                                      // color: Colors.blue,
+                                      child: const Text("确定"),
+                                      onPressed: () {
+                                        stationName =
+                                            _stationNameController.text;
+                                        updateStationName(stationName, context);
+                                        Navigator.of(context).pop(true);
+                                      },
+                                    ),
+                                  ],
+                                ),
+                              ],
+                            ),
+                          );
+                          if (refalsh) {
+                            setState(() {});
+                          }
+                        },
+                        color: Colors.blue,
+                        child: const Text("修改站名"),
+                      ),
+                    ),
+                    Expanded(
+                      child: Column(
+                        children: [
+                          MaterialButton(
+                            onPressed: () async {
+                              bool? reflush = await showDialog(
+                                context: context,
+                                builder: (BuildContext context) =>
+                                    const ImportStationDialog(),
+                              );
+                              if (reflush != null && reflush) {
+                                setState(() {});
+                              }
+                              print(reflush);
+                            },
+                            color: Colors.blue,
+                            child: const Text("导入新站"),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                ),
               ),
               // Scrollable(viewportBuilder: viewportBuilder)
               // Row(children: [],),
@@ -144,34 +153,40 @@ class _StationManageState extends State<StationManage> {
                   itemCount: positions.length + 1,
                   itemBuilder: (BuildContext context, int index) {
                     if (index == 0) {
-                      return const Row(
-                        children: [
-                          Expanded(
-                            child: Text('序号'),
-                          ),
-                          Expanded(
-                            child: Text('标准描述'),
-                          ),
-                          Expanded(
-                            child: Text('转发地址'),
-                          ),
-                          Expanded(
-                            child: Text('0'),
-                          ),
-                          Expanded(
-                            child: Text('1'),
-                          ),
-                          Expanded(
-                            child: Text('备注'),
-                          ),
-                          Expanded(
-                            child: Text('报警等级'),
-                          ),
-                          Expanded(
-                            child: Text('备注'),
-                          ),
-                        ],
-                      );
+                      return const PositionListItem();
+                      // return const Padding(
+                      //   padding: EdgeInsets.only(left: 8),
+                      //   child: Row(
+                      //     mainAxisSize: MainAxisSize.min,
+                      //     children: [
+                      //       Padding(
+                      //         padding: EdgeInsets.only(left: 8, right: 8),
+                      //         child: Text('序号'),
+                      //       ),
+                      //       Expanded(
+                      //         child: Text('标准描述'),
+                      //       ),
+                      //       Expanded(
+                      //         child: Text('转发地址'),
+                      //       ),
+                      //       Expanded(
+                      //         child: Text('0'),
+                      //       ),
+                      //       Expanded(
+                      //         child: Text('1'),
+                      //       ),
+                      //       Expanded(
+                      //         child: Text('备注'),
+                      //       ),
+                      //       Expanded(
+                      //         child: Text('报警等级'),
+                      //       ),
+                      //       Expanded(
+                      //         child: Text('说明'),
+                      //       ),
+                      //     ],
+                      //   ),
+                      // );
                     }
                     return PositionListItem(position: positions[index - 1]);
                   }),
@@ -228,46 +243,60 @@ class _StationManageState extends State<StationManage> {
 }
 
 class PositionListItem extends StatelessWidget {
-  final Position position;
+  final Position? position;
   // final Function(Position) onDelete;
   // final Function(Position) onEdit;
 
   const PositionListItem({
     super.key,
-    required this.position,
+    this.position,
     // required this.onDelete,
     // required this.onEdit,
   });
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Expanded(
-          child: Text('${position.serialNumber}'),
-        ),
-        Expanded(
-          child: Text(position.name),
-        ),
-        Expanded(
-          child: Text('${position.location}'),
-        ),
-        Expanded(
-          child: Text(position.getValueDescString(0)),
-        ),
-        Expanded(
-          child: Text(position.getValueDescString(1)),
-        ),
-        Expanded(
-          child: Text(position.stateDesc()),
-        ),
-        Expanded(
-          child: Text('${position.alarmLevel}'),
-        ),
-        Expanded(
-          child: Text(position.description ?? ""),
-        ),
-      ],
+    return Padding(
+      padding: const EdgeInsets.only(left: 8),
+      child: Row(
+        // mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            decoration: const BoxDecoration(
+              border: Border(
+                  bottom: BorderSide(width: 1, color: Color(0xffe5e5e5))),
+            ),
+            child: Padding(
+              padding: const EdgeInsets.only(left: 8, right: 8),
+              child:
+                  Text('${position == null ? "序号" : position!.serialNumber}'),
+            ),
+          ),
+          Expanded(
+            child: Text(position == null ? "标准描述" : position!.name),
+          ),
+          Expanded(
+            child: Text('${position == null ? "转发地址" : position!.location}'),
+          ),
+          Expanded(
+            child:
+                Text(position == null ? "0" : position!.getValueDescString(0)),
+          ),
+          Expanded(
+            child:
+                Text(position == null ? "1" : position!.getValueDescString(1)),
+          ),
+          Expanded(
+            child: Text(position == null ? "备注" : position!.stateDesc()),
+          ),
+          Expanded(
+            child: Text('${position == null ? "告警等级" : position!.alarmLevel}'),
+          ),
+          Expanded(
+            child: Text(position == null ? "说明" : position!.description ?? ""),
+          ),
+        ],
+      ),
     );
   }
 }

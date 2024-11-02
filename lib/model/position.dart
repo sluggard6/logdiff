@@ -52,7 +52,8 @@ class Position {
   }
 
   String getValueDescString(int value) {
-    return jsonDecode(valueDesc)[value.toString()] ?? "未知";
+    String v = jsonDecode(valueDesc)[value.toString()];
+    return v == "null" ? "" : v;
   }
 }
 
