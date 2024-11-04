@@ -98,7 +98,7 @@ extension PositionValueDesc on Position {
 
 extension PositionStateDesc on Position {
   String stateDesc() {
-    return state == 0 ? "未启用" : "启用";
+    return state == 0 ? "启用" : "未启用";
   }
 }
 

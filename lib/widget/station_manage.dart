@@ -20,6 +20,7 @@ class _StationManageState extends State<StationManage> {
   final TextEditingController _stationNameController = TextEditingController();
   late List<Position> positions = [];
   // late List<>
+  // GlobalKey stationKey = GlobalKey();
 
   @override
   Widget build(BuildContext context) {
@@ -50,8 +51,14 @@ class _StationManageState extends State<StationManage> {
                           if (snapshot.connectionState ==
                               ConnectionState.done) {
                             return DropdownButton<int>(
+                              // key: stationKey,
                               value: stationId,
                               onChanged: (int? id) {
+                                // stationKey.currentState?.setState(() {
+                                //   stationId = stations
+                                //       .firstWhere((element) => element.id == id)
+                                //       .id!;
+                                // });
                                 setState(() {
                                   stationId = stations
                                       .firstWhere((element) => element.id == id)
@@ -73,7 +80,11 @@ class _StationManageState extends State<StationManage> {
                     Padding(
                       padding: const EdgeInsets.only(left: 8),
                       child: MaterialButton(
-                        onPressed: _loadPostions,
+                        onPressed: () {
+                          if (stationId > 0) {
+                            setState(() {});
+                          }
+                        },
                         color: Colors.blue,
                         child: const Text("加载数据"),
                       ),
@@ -148,47 +159,24 @@ class _StationManageState extends State<StationManage> {
               ),
               // Scrollable(viewportBuilder: viewportBuilder)
               // Row(children: [],),
-              ListView.builder(
-                  shrinkWrap: true,
-                  itemCount: positions.length + 1,
-                  itemBuilder: (BuildContext context, int index) {
-                    if (index == 0) {
-                      return const PositionListItem();
-                      // return const Padding(
-                      //   padding: EdgeInsets.only(left: 8),
-                      //   child: Row(
-                      //     mainAxisSize: MainAxisSize.min,
-                      //     children: [
-                      //       Padding(
-                      //         padding: EdgeInsets.only(left: 8, right: 8),
-                      //         child: Text('序号'),
-                      //       ),
-                      //       Expanded(
-                      //         child: Text('标准描述'),
-                      //       ),
-                      //       Expanded(
-                      //         child: Text('转发地址'),
-                      //       ),
-                      //       Expanded(
-                      //         child: Text('0'),
-                      //       ),
-                      //       Expanded(
-                      //         child: Text('1'),
-                      //       ),
-                      //       Expanded(
-                      //         child: Text('备注'),
-                      //       ),
-                      //       Expanded(
-                      //         child: Text('报警等级'),
-                      //       ),
-                      //       Expanded(
-                      //         child: Text('说明'),
-                      //       ),
-                      //     ],
-                      //   ),
-                      // );
+              FutureBuilder(
+                  future: _loadPostions(),
+                  builder: (BuildContext context,
+                      AsyncSnapshot<List<Position>> snapshot) {
+                    if (snapshot.connectionState == ConnectionState.done) {
+                      return ListView.builder(
+                          shrinkWrap: true,
+                          itemCount: positions.length + 1,
+                          itemBuilder: (BuildContext context, int index) {
+                            if (index == 0) {
+                              return const PositionListItem();
+                            }
+                            return PositionListItem(
+                                position: positions[index - 1]);
+                          });
+                    } else {
+                      return const Center(child: Text("暂无数据"));
                     }
-                    return PositionListItem(position: positions[index - 1]);
                   }),
             ],
           ),
@@ -235,10 +223,14 @@ class _StationManageState extends State<StationManage> {
     );
   }
 
-  void _loadPostions() async {
-    positions =
-        await Global.database.positionDao.findPositionsByStationId(stationId);
-    setState(() {});
+  Future<List<Position>> _loadPostions() async {
+    if (stationId <= 0) {
+      return [];
+    } else {
+      positions =
+          await Global.database.positionDao.findPositionsByStationId(stationId);
+    }
+    return positions;
   }
 }
 
