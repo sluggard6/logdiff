@@ -157,27 +157,26 @@ class _StationManageState extends State<StationManage> {
                   ],
                 ),
               ),
-              // Scrollable(viewportBuilder: viewportBuilder)
-              // Row(children: [],),
               FutureBuilder(
-                  future: _loadPostions(),
-                  builder: (BuildContext context,
-                      AsyncSnapshot<List<Position>> snapshot) {
-                    if (snapshot.connectionState == ConnectionState.done) {
-                      return ListView.builder(
-                          shrinkWrap: true,
-                          itemCount: positions.length + 1,
-                          itemBuilder: (BuildContext context, int index) {
-                            if (index == 0) {
-                              return const PositionListItem();
-                            }
-                            return PositionListItem(
-                                position: positions[index - 1]);
-                          });
-                    } else {
-                      return const Center(child: Text("暂无数据"));
-                    }
-                  }),
+                future: _loadPostions(),
+                builder: (BuildContext context,
+                    AsyncSnapshot<List<Position>> snapshot) {
+                  if (snapshot.connectionState == ConnectionState.done) {
+                    return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: positions.length + 1,
+                        itemBuilder: (BuildContext context, int index) {
+                          if (index == 0) {
+                            return const PositionListItem();
+                          }
+                          return PositionListItem(
+                              position: positions[index - 1]);
+                        });
+                  } else {
+                    return const Center(child: Text("暂无数据"));
+                  }
+                },
+              ),
             ],
           ),
         ),

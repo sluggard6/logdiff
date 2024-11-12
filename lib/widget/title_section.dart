@@ -1,14 +1,29 @@
 import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 
+import 'package:csv/csv.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:logdiff/components/global.dart';
+import 'package:logdiff/model/file_template.dart';
+import 'package:logdiff/model/log_diff.dart';
 import 'package:logdiff/model/position.dart';
 import 'package:logdiff/model/station.dart';
+import 'package:logdiff/util/file_tool.dart';
+import 'package:toastification/toastification.dart';
 
 List<PositionType> types = PositionTypes.values;
 Station zeroStation = Station(id: 0, name: "无数据");
+List<LogDiffInfo> diffInfos = [
+  LogDiffInfo(
+      timeDiff: 50,
+      stationName: "松江大学城",
+      positionName: "测试点",
+      location: 25,
+      value: 1)
+];
 
 class TitleSection extends StatefulWidget {
   // final StationDao stationDao;
@@ -32,7 +47,7 @@ class _TitleSectionState extends State<TitleSection> {
   String file2 = "";
   int? stationId;
   // Station station = zeroStation;
-  // late Station station;
+  Station? station;
 
   // @override
   // void initState() async {
@@ -87,6 +102,7 @@ class _TitleSectionState extends State<TitleSection> {
               )
             ]),
           ),
+          /* 选择条 */
           Padding(
             padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
             child: Row(
@@ -118,9 +134,9 @@ class _TitleSectionState extends State<TitleSection> {
                         value: stationId,
                         onChanged: (int? id) {
                           setState(() {
-                            stationId = snapshot.data
-                                .firstWhere((element) => element.id == id)
-                                .id!;
+                            station = snapshot.data
+                                .firstWhere((element) => element.id == id);
+                            stationId = station!.id;
                           });
                         },
                         items: snapshot.data.map<DropdownMenuItem<int>>(
@@ -145,13 +161,35 @@ class _TitleSectionState extends State<TitleSection> {
               ],
             ),
           ),
+          // Padding(
+          //   padding: const EdgeInsets.only(left: 8, top: 8, right: 8),
+          //   child: Row(
+          //     children: [
+          /* "对比结果" */
+          ListView.builder(
+            shrinkWrap: true,
+            itemCount: diffInfos.length,
+            itemBuilder: (context, index) {
+              return Row(
+                children: [
+                  Text(diffInfos[index].stationName),
+                ],
+              );
+            },
+          ),
+          //     ],
+          //   ),
+          // )
         ],
       ),
     );
   }
 
   Future<void> selectFile1() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
 
     if (result != null) {
       File file = File(result.files.single.path!);
@@ -165,7 +203,10 @@ class _TitleSectionState extends State<TitleSection> {
   }
 
   Future<void> selectFile2() async {
-    FilePickerResult? result = await FilePicker.platform.pickFiles();
+    FilePickerResult? result = await FilePicker.platform.pickFiles(
+      type: FileType.custom,
+      allowedExtensions: ['csv'],
+    );
 
     if (result != null) {
       File file = File(result.files.single.path!);
@@ -178,8 +219,96 @@ class _TitleSectionState extends State<TitleSection> {
     }
   }
 
-  void runCompare() {
-    print("runCompare");
+  bool checkParamCompare() {
+    if (file1 == "" || file2 == "") {
+      return false;
+    }
+    return true;
+  }
+
+  void runCompare() async {
+    if (kDebugMode) {
+      print("runCompare");
+    }
+    if (!checkParamCompare()) {
+      toastification.show(
+        title: const Text("请先选择文件"),
+        autoCloseDuration: const Duration(seconds: 3),
+      );
+    }
+    File zhuzhanFile = File(file1);
+    File tongguanFile = File(file2);
+    var fields = await zhuzhanFile
+        .openRead()
+        .transform(utf8.decoder)
+        .transform(const CsvToListConverter())
+        .toList();
+    int index = 0;
+    List<ZhuZhan> zhuzhan =
+        fields.where((field) => field[2] == '遥信').map((field) {
+      String name = field[4];
+      return ZhuZhan(
+        index: index,
+        time: FileTool.readDateTime(field[0]),
+        stationName: field[1],
+        type: PositionType.yx.name,
+        name: name,
+        value: name.substring(name.length - 2).trim(),
+        // value: field[5][3],
+      );
+    }).toList();
+    // for (var field in fields) {
+    //   print(field);
+    //   if (field[2] == '遥信') {
+    //     index++;
+    //     String name = field[4];
+    //     print(index);
+    //     ZhuZhan zhuZhan = ZhuZhan(
+    //       index: index,
+    //       time: FileTool.readDateTime(field[0]),
+    //       stationName: field[1],
+    //       type: PositionType.yx.name,
+    //       name: name,
+    //       value: name.substring(0, name.length - 2).trim(),
+    //       // value: field[5][3],
+    //     );
+    //     print(zhuZhan);
+    //   }
+    // }
+    fields = await tongguanFile
+        .openRead()
+        .transform(utf8.decoder)
+        .transform(const CsvToListConverter(eol: "\n"))
+        .toList();
+    print(fields.length);
+    for (var field in fields) {
+      print(field);
+    }
+    List<TongGuan> tongguan = fields.where((field) {
+      print(field);
+      return (field[4] as String).trim() == '状态量变位';
+    }).map((field) {
+      String name = field[2];
+      //       return [];
+      return TongGuan(
+        index: index,
+        time: FileTool.readDateTime(field[0]),
+        stationName: field[1],
+        type: PositionType.yx.name,
+        name: name,
+        value: name.substring(name.length - 2).trim(),
+        alarmLevel: field[3],
+        // value: field[5][3],
+      );
+    }).toList();
+    // for (var zz in zhuzhan) {
+    //   print(zz);
+    // }
+    print(
+        "----------------------------------------------------------------${tongguan.length}");
+    for (var tg in tongguan) {
+      print(tg);
+    }
   }
 
   void changeType(int? type) {

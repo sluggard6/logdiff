@@ -2,7 +2,7 @@ import 'dart:io';
 
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
-import 'package:logdiff/components/excel_tool.dart';
+import 'package:logdiff/util/excel_tool.dart';
 import 'package:logdiff/components/global.dart';
 import 'package:toastification/toastification.dart';
 
