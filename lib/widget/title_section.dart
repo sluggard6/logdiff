@@ -17,12 +17,12 @@ import 'package:toastification/toastification.dart';
 List<PositionType> types = PositionTypes.values;
 Station zeroStation = Station(id: 0, name: "无数据");
 List<LogDiffInfo> diffInfos = [
-  LogDiffInfo(
-      timeDiff: 50,
-      stationName: "松江大学城",
-      positionName: "测试点",
-      location: 25,
-      value: 1)
+  // LogDiffInfo(
+  //     timeDiff: 50,
+  //     stationName: "松江大学城",
+  //     positionName: "测试点",
+  //     location: 25,
+  //     value: 1)
 ];
 
 class TitleSection extends StatefulWidget {
@@ -166,23 +166,57 @@ class _TitleSectionState extends State<TitleSection> {
           //   child: Row(
           //     children: [
           /* "对比结果" */
-          ListView.builder(
-            shrinkWrap: true,
-            itemCount: diffInfos.length,
-            itemBuilder: (context, index) {
-              return Row(
-                children: [
-                  Text(diffInfos[index].stationName),
-                ],
-              );
-            },
-          ),
+          getDiffs()
           //     ],
           //   ),
           // )
         ],
       ),
     );
+  }
+
+  Widget getDiffs() {
+    if (diffInfos.isEmpty) {
+      return const Text("暂无数据");
+    } else {
+      return ListView.builder(
+        shrinkWrap: true,
+        itemCount: diffInfos.length,
+        itemBuilder: (context, index) {
+          var diff = diffInfos[index];
+          return Padding(
+            padding: const EdgeInsets.only(left: 8),
+            child: Row(
+              children: [
+                Expanded(
+                  child: Text(
+                    diffInfos[index].timeDiff.toString(),
+                    style: TextStyle(
+                      background: Paint()
+                        ..color = diffInfos[index].timeState
+                            ? Colors.red
+                            : Colors.white,
+                    ),
+                  ),
+                ),
+                Expanded(child: Text(diffInfos[index].stationName)),
+                Expanded(child: Text(diffInfos[index].positionName)),
+                Expanded(child: Text(diffInfos[index].location.toString())),
+                Expanded(
+                  child: Text(
+                    "${diff.zzValue}:${diff.tgValue}",
+                    style: TextStyle(
+                        background: Paint()
+                          ..color =
+                              diff.valueState ? Colors.red : Colors.white),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      );
+    }
   }
 
   Future<void> selectFile1() async {
@@ -244,7 +278,7 @@ class _TitleSectionState extends State<TitleSection> {
         .transform(const CsvToListConverter())
         .toList();
     int index = 0;
-    List<ZhuZhan> zhuzhan =
+    List<ZhuZhan> zhuzhans =
         fields.where((field) => field[2] == '遥信').map((field) {
       String name = field[4];
       return ZhuZhan(
@@ -254,6 +288,7 @@ class _TitleSectionState extends State<TitleSection> {
         type: PositionType.yx.name,
         name: name,
         value: name.substring(name.length - 2).trim(),
+        location: field[3] as int,
         // value: field[5][3],
       );
     }).toList();
@@ -298,17 +333,37 @@ class _TitleSectionState extends State<TitleSection> {
         name: name,
         value: name.substring(name.length - 2).trim(),
         alarmLevel: field[3],
+        location: field[5] as int,
         // value: field[5][3],
       );
     }).toList();
     // for (var zz in zhuzhan) {
     //   print(zz);
     // }
-    print(
-        "----------------------------------------------------------------${tongguan.length}");
-    for (var tg in tongguan) {
-      print(tg);
+    for (var zz in zhuzhans) {
+      print(zz);
+      for (var tg in tongguan) {
+        print(tg);
+        if (isSame(zz, tg)) {
+          diffInfos.add(
+            LogDiffInfo(
+              timeDiff: tg.time - zz.time,
+              stationName: zz.stationName,
+              positionName: zz.name,
+              location: zz.location,
+              zzValue: zz.value,
+              tgValue: tg.value,
+            ),
+          );
+        }
+        zhuzhans.remove(zz);
+      }
     }
+    // for (var tg in tongguan) {}
+  }
+
+  bool isSame(ZhuZhan zz, TongGuan tg) {
+    return zz.stationName == tg.stationName && zz.location == zz.location;
   }
 
   void changeType(int? type) {

@@ -14,7 +14,7 @@ class ExcelTool {
 
     var excel = Excel.decodeBytes(await file.readAsBytes());
     // Excel.decodeBuffer(FileinputStream(File(filePath).openSync()));
-    excel.sheets['遥信']!.rows.asMap().entries.forEach((e) {
+    excel.sheets['遥信表']!.rows.asMap().entries.forEach((e) {
       // if (e.key < 2) {
       //   print('---------------------------------------');
       //   print(e.key);
@@ -23,7 +23,7 @@ class ExcelTool {
       // }
       // json.decoder.cast()
       // json.encode(value)
-      if (e.key > 1) {
+      if (e.key > 2) {
         for (var cell in e.value) {
           if (cell != null && e.key < 5) {
             print('${e.key} : ${cell.cellIndex.columnIndex} : ${cell.value}');
@@ -35,17 +35,17 @@ class ExcelTool {
               stationId: stationId,
               type: PositionType.yx.value,
               serialNumber: (e.value[0]!.value as IntCellValue).value,
-              name: e.value[1]!.value.toString(),
-              location: (e.value[3]!.value as IntCellValue).value,
+              name: e.value[5]!.value.toString(),
+              location: (e.value[10]!.value as IntCellValue).value,
               valueDesc: Map.of({
-                '"0"': '"${e.value[4]!.value}"',
-                '"1"': '"${e.value[5]!.value}"',
+                '"0"': '"${e.value[7]!.value}"',
+                '"1"': '"${e.value[8]!.value}"',
               }).toString(),
-              state: readState(e.value[6]!.value.toString()),
-              alarmLevel: e.value[7]!.value == null
+              state: readState(e.value[12]!.value.toString()),
+              alarmLevel: e.value[9]!.value == null
                   ? 0
-                  : (e.value[7]!.value as IntCellValue).value,
-              description: e.value[8]!.value?.toString(),
+                  : (e.value[9]!.value as IntCellValue).value,
+              description: e.value[12]!.value?.toString(),
             ),
           );
         }
@@ -54,6 +54,6 @@ class ExcelTool {
   }
 
   static readState(String value) {
-    return value == '启用' ? 0 : 1;
+    return value == '未启用' ? 1 : 0;
   }
 }

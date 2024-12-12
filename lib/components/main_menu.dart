@@ -51,7 +51,9 @@ class _MainMenuState extends State<MainMenu> {
                     context,
                     MaterialPageRoute(
                         builder: (context) => const StationManage()),
-                  );
+                  ).then((v) {
+                    setState(() {});
+                  });
                 },
                 icon: const Icon(Icons.add),
               ),
